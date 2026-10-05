@@ -1,34 +1,54 @@
 package es.nekaso.pulso.monitor;
 
+import es.nekaso.pulso.model.monitor.Monitor;
+import es.nekaso.pulso.repository.monitor.MonitorRepository;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import java.util.LinkedList;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URI;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/monitors")
 class MonitorController {
 
-    private final MonitorService monitorService;
+    private final MonitorRepository monitorRepository;
 
-    public MonitorController(MonitorService monitorService) {
-        this.monitorService = monitorService;
+    public MonitorController(MonitorRepository monitorRepository) {
+        this.monitorRepository = monitorRepository;
     }
 
     @GetMapping("/")
-    private ResponseEntity<LinkedList<Monitor>> all() {
-        return ResponseEntity.ok(this.monitorService.get());
+    private ResponseEntity<Iterable<Monitor>> all() {
+        return ResponseEntity.ok(monitorRepository.findAll());
     }
 
     @GetMapping("/{requestedId}")
-    private ResponseEntity<Monitor> findById(@PathVariable int requestedId) {
-        Monitor monitorRequested = this.monitorService.get(requestedId);
-        if (monitorRequested != null) {
-            return ResponseEntity.ok(monitorRequested);
+    private ResponseEntity<Monitor> findById(@PathVariable Long requestedId) {
+        Optional<Monitor> monitorRequested = this.monitorRepository.findById(requestedId);
+        if (monitorRequested.isPresent()) {
+            return ResponseEntity.ok(monitorRequested.get());
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PostMapping
+    private ResponseEntity<Void> createMonitor(@RequestBody Monitor newMonitorRequest, UriComponentsBuilder ucb) {
+        Monitor savedMonitor = monitorRepository.save(newMonitorRequest);
+        URI locationOfNewMonitor = ucb
+                .path("monitors/{id}")
+                .buildAndExpand(savedMonitor.getId())
+                .toUri();
+        return ResponseEntity.created(locationOfNewMonitor).build();
+    }
+
+    @DeleteMapping("/{requestedId}")
+    private ResponseEntity<Void> deleteMonitor(@PathVariable Long requestedId) {
+        if (monitorRepository.existsById(requestedId)) {
+            monitorRepository.deleteById(requestedId);
+        }
+        return ResponseEntity.status(204).build();
     }
 }

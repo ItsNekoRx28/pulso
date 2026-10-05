@@ -5,9 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.boot.test.json.JacksonTester;
-import java.time.LocalDate;
 
 import java.io.IOException;
+import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,7 +21,7 @@ class MonitorJsonTest {
 
     @Test
     void monitorSerializationTest() throws IOException {
-        Monitor monitor = new Monitor(1, "Nekaso", "https://nekaso.es", this.now);
+        Monitor monitor = new Monitor(1L, "Nekaso", "https://nekaso.es", this.now);
         assertThat(json.write(monitor)).hasJsonPathNumberValue("@.id");
         assertThat(json.write(monitor)).extractingJsonPathNumberValue("@.id")
                 .isEqualTo(1);
@@ -47,7 +47,7 @@ class MonitorJsonTest {
                 }
                 """;
         assertThat(json.parse(expected))
-                .isEqualTo(new Monitor(1, "Nekaso", "https://nekaso.es", this.now));
+                .isEqualTo(new Monitor(1L, "Nekaso", "https://nekaso.es", this.now));
         assertThat(json.parseObject(expected).id()).isEqualTo(1);
         assertThat(json.parseObject(expected).name()).isEqualTo("Nekaso");
         assertThat(json.parseObject(expected).url()).isEqualTo("https://nekaso.es");
